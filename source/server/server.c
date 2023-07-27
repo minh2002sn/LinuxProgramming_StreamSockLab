@@ -71,20 +71,20 @@ int server_handle(int argc, char *argv[])
     LOG_SOCK_INFO("Client", client_addr);
 
     /* Transfer test.txt file */
-    int test_fd = open("./input/test.txt", O_RDONLY);
+    int test_fd = open("./input/picture_1.png", O_RDONLY);
     ERROR_CHECK(test_fd, "open()");
-    // char file_buff[BUFF_SIZE];
-    // int n;
-    // while((n = read(test_fd, file_buff, BUFF_SIZE)) > 0)
-    // {
-    //     ret = write(client_fd, file_buff, n);
-    //     ERROR_CHECK(n, "write()");
-    // }
+    char file_buff[BUFF_SIZE];
+    int n;
+    while((n = read(test_fd, file_buff, BUFF_SIZE)) > 0)
+    {
+        ret = write(client_fd, file_buff, n);
+        ERROR_CHECK(n, "write()");
+    }
 
-    struct stat st;
-    ret = stat("./input/test.txt", &st);
-    ERROR_CHECK(ret, "stat()");
-    sendfile(client_fd, test_fd, NULL, st.st_size);
+    // struct stat st;
+    // ret = stat("./input/test.txt", &st);
+    // ERROR_CHECK(ret, "stat()");
+    // sendfile(client_fd, test_fd, NULL, st.st_size);
 
     close(test_fd);
 

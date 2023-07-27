@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -44,7 +45,13 @@ int client_handle(int argc, char *argv[])
     ERROR_CHECK(ret, "connect()");
 
     /* Receiving data */
-    int recv_file_fd = open("./output/recv_test.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    int recv_file_fd = open("./output/recv_picture_1.png", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if(recv_file_fd == -1)
+    {
+        ret = mkdir("./output/", 0775);
+        ERROR_CHECK(ret, "mkdir()");
+        recv_file_fd = open("./output/recv_picture_1.png", O_WRONLY | O_CREAT, 0666);
+    }
     ERROR_CHECK(recv_file_fd, "open()");
     char recv_test_buff[BUFF_SIZE];
     int n;
