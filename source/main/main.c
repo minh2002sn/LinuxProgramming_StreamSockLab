@@ -9,6 +9,7 @@
 
 int main(int argc, char *argv[])
 {
+<<<<<<< Updated upstream
     if(argc == 3)
     {
         if(strcmp("server", argv[1]) == 0)
@@ -29,5 +30,16 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     
+=======
+    app_main_init(argc, argv);
+
+    while(1)
+    {
+        app_main_loop();
+    }
+
+    app_main_deinit();
+
+>>>>>>> Stashed changes
     return 0;
 }
