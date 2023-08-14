@@ -21,7 +21,6 @@ void app_main_init(int argc, char *argv[])
         printf("Not enough arguments.\n");
         exit(EXIT_FAILURE);
     }
-    server_start();
 #else
     if(argc == 3)
     {
@@ -32,17 +31,15 @@ void app_main_init(int argc, char *argv[])
         printf("Not enough arguments.\n");
         exit(EXIT_FAILURE);
     }
-    client_start();
 #endif
 }
 
-void app_main_loop()
+void app_main_handle()
 {
 #if SERVER_OR_CLIENT
-    while(1)
-    {
-        server_serve();
-    }
+    server_handle();
+#else
+    client_handle();
 #endif
 }
 

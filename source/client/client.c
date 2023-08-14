@@ -43,7 +43,7 @@ void client_init(const char *ip_str, int port_no)
     LOG_SOCK_INFO("Server", gh_client->addr);
 }
 
-void client_start()
+void client_handle()
 {
     int ret = 0;
     int recv_file_fd = 0;
