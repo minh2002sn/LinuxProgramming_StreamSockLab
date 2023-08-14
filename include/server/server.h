@@ -3,7 +3,7 @@
 
 void server_init(int port_no);
 void server_start();
-void server_loop();
+void server_serve();
 void server_deinit();
 
 #endif

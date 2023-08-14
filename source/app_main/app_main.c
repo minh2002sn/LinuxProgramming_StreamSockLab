@@ -1,6 +1,5 @@
 #include "app_main.h"
 #include "app_config.h"
-#include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,7 +39,10 @@ void app_main_init(int argc, char *argv[])
 void app_main_loop()
 {
 #if SERVER_OR_CLIENT
-    server_loop();
+    while(1)
+    {
+        server_serve();
+    }
 #endif
 }
 
