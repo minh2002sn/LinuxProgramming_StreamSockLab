@@ -1,4 +1,4 @@
-#include "server.h"
+#include "app_server.h"
 #include "app_config.h"
 #include "error_checker.h"
 #include <stdio.h>
@@ -42,7 +42,7 @@ static void grimReaper(int sig)
     errno = savedErrno;
 }
 
-static void request_handle(int interface_fd)
+static void request_handle(int conn_fd)
 {
     int test_fd = 0;
     int ret = 0;
@@ -54,18 +54,29 @@ static void request_handle(int interface_fd)
 
     ret = stat(DATA_FOLDER DATA_FILE_NAME, &st);
     ERROR_CHECK(ret, "stat()");
-    sendfile(interface_fd, test_fd, NULL, st.st_size);
-    printf("Done transfer %ld bytes.\n", st.st_size);
+
+    ret = sendfile(conn_fd, test_fd, NULL, st.st_size);
+    ERROR_CHECK(ret, "sendfile()");
+    
+    printf("Done transfer %ld bytes.\n", ret);
 
     close(test_fd);
 }
 
-void server_init(int port_no)
+void app_server_init(int port_no)
 {
     int ret = 0;
     int opt_val = 1;
     struct sigaction sa;
+    
+    /* Establish SIGCHILD handler */
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    sa.sa_handler = grimReaper;
+    ret = sigaction(SIGCHLD, &sa, NULL);
+    ERROR_CHECK(ret, "sigaction()");
 
+    /* Dynamic allocate gh_server */
     if (gh_server == NULL)
     {
         gh_server = (socket_data_t *)malloc(sizeof(socket_data_t));
@@ -88,22 +99,15 @@ void server_init(int port_no)
     /* Bind socket with server address */
     ret = bind(gh_server->fd, (struct sockaddr *)&gh_server->addr, sizeof(gh_server->addr));
     ERROR_CHECK(ret, "bind()");
-
-    /* Establish SIGCHILD handler */
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-    sa.sa_handler = grimReaper;
-    ret = sigaction(SIGCHLD, &sa, NULL);
-    ERROR_CHECK(ret, "sigaction()");
 }
 
 
-void server_handle()
+void app_server_handle()
 {
     /* Accept connection with client */
     struct sockaddr_in h_client_addr;
     int client_addr_len = sizeof(h_client_addr);
-    int interface_fd = 0;
+    int conn_fd = 0;
     int ret = 0;
 
     /* Listen to client */
@@ -113,8 +117,8 @@ void server_handle()
     while(1)
     {
         /* Accept connection */
-        interface_fd = accept(gh_server->fd, (struct sockaddr *)&h_client_addr, (socklen_t *)&client_addr_len);
-        ERROR_CHECK(interface_fd, "accept()");
+        conn_fd = accept(gh_server->fd, (struct sockaddr *)&h_client_addr, (socklen_t *)&client_addr_len);
+        ERROR_CHECK(conn_fd, "accept()");
         LOG_SOCK_INFO("Client", h_client_addr);
 
         /* Create child process to handle request */
@@ -124,10 +128,10 @@ void server_handle()
         {
             /* Child process */
             /* Handle request */
-            request_handle(interface_fd);
+            request_handle(conn_fd);
 
             /* Close client socket */
-            close(interface_fd);
+            close(conn_fd);
 
             exit(EXIT_SUCCESS);
         }
@@ -135,13 +139,13 @@ void server_handle()
         {
             /* Parent process */
             /* Close client socket */
-            close(interface_fd);
+            close(conn_fd);
         }
 
     }
 }
 
-void server_deinit()
+void app_server_deinit()
 {
     close(gh_server->fd);
     free(gh_server);
